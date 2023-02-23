@@ -2,24 +2,20 @@ import 'dart:async';
 
 import 'package:aisoneaccess/Screens/vi_CompanyLIst.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
-
 import '../ClassModules/cmGlobalVariables.dart';
-import '../Models/EModel/ModUserProfile.dart';
 import '../Models/EModel/ModCompanySettingQuery.dart';
-
+import '../Models/EModel/ModUserProfile.dart';
 import '../ServiceLayer/SlAisoneERP/SlWLogin.dart';
 import '../ServiceLayer/SlAisoneERP/SlWUserProfile.dart';
-import '../UserWidgets/Buttons/UWBUtton.dart';
 import '../UserWidgets/Labels/Ulabels.dart';
 import '../UserWidgets/TextFields/UWTxtString.dart';
 
@@ -32,55 +28,53 @@ class vi_login extends StatefulWidget {
 
 class _vi_loginState extends State<vi_login> {
   @override
+
+
+
+  //#region Decleration
+
+  //LoginButton
   bool G_LoadingButtonReset = true;
+
+  //Eyebutton
   bool G_isSecurePassword = true;
-  var subscription;
-  String Status = "Offline";
+
+  //Forcheckbox
+  bool G_isChecked = false;
 
   //DB
-  late Box box1;
-  bool isChecked = false;
+  late Box G_DBbox;
 
-  //Widgets
-  UWTxtString txtEmail = new UWTxtString();
-  TextEditingController txtPass = new TextEditingController();
+  //UWWidgets
+  UWTxtString G_UWEmail = new UWTxtString();
+  TextEditingController G_TxtPass = new TextEditingController();
 
   ULabels lblLogin = new ULabels();
   ULabels lblcredentials = new ULabels();
   ULabels lblAppmode = new ULabels();
 
-  UWButton l_UWButton = new UWButton(
-    text: '',
-  );
+  String G_deviceTokenToSendPushNotification = "";
+  var G_Connection_subscription;
+  String G_InternetConnectionStatus = "Offline";
 
-  final RoundedLoadingButtonController Loading_Button =
+  final RoundedLoadingButtonController G_Loginloading_Button =
       RoundedLoadingButtonController();
 
+//#endregion
+
+  //#region States
   void initState() {
     super.initState();
 
-    //FncCheckWifiMobileNetwork();
-    subscription = Connectivity()
-        .onConnectivityChanged
-        .listen((ConnectivityResult l_result) {
-      if (l_result == ConnectivityResult.none) {
-        setState(() {
-          Status = "Offline";
-          Get.snackbar("Network", "Device is Offline Check Your Internet");
-
-          print(Status);
-        });
-      } else {
-        Status = "Online";
-        Get.snackbar("Network", "Device is Online");
-        print(Status);
-      }
-    });
-    createBox();
-    G_LoadingButtonReset = true;
     FncstartupSettings();
-    Loading_Button.reset();
-    Loading_Button.stateStream.listen((value) {
+    FncFirebaseNotification();
+    FncCheckDeviceInternetContineous();
+    Fnc_CreateDBBox();
+
+    //InitiatePerameters
+    G_LoadingButtonReset = true;
+    G_Loginloading_Button.reset();
+    G_Loginloading_Button.stateStream.listen((value) {
       print(value);
     });
   }
@@ -89,11 +83,22 @@ class _vi_loginState extends State<vi_login> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
-    subscription.cancel();
+    G_Connection_subscription.cancel();
   }
 
+//#endregion
+
+  //===========================================Implementations==============================
+
+  //#region UI Widgets Class
   @override
   Widget build(BuildContext context) {
+    //Check keyboard is open
+    bool keyboardIsOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    FncgetDeviceTokenToSendNotification();
+
+    //#region Widgets
+
     Widget togglepassword() {
       return IconButton(
         onPressed: () {
@@ -108,210 +113,346 @@ class _vi_loginState extends State<vi_login> {
       );
     }
 
-    //=============================================
-    DateTime timeBackPressed = DateTime.now();
-
-    return WillPopScope(
-      onWillPop: () async {
-        //current time and last time we press the back back button
-        final difference = DateTime.now().difference(timeBackPressed);
-        //in case 2 back button presses is greater then 2 ,then we only show warning
-        bool isExitWarning = difference >= Duration(seconds: 3);
-
-        //current state intime
-        timeBackPressed = DateTime.now();
-
-        //Stay in application
-        if (isExitWarning) {
-          final alert = "Press back again to exist";
-          Fluttertoast.showToast(
-              gravity: ToastGravity.SNACKBAR,
-              backgroundColor: Colors.lightBlue,
-              toastLength: Toast.LENGTH_SHORT,
-              timeInSecForIosWeb: 1,
-              msg: alert,
-              fontSize: 14);
-
-          return false;
-        }
-        //Exit from  application
-        else {
-          Fluttertoast.cancel();
-          return true;
-        }
-      },
-      child: GestureDetector(
-        onTap: () {
-          FocusManager.instance.primaryFocus?.unfocus();
-        },
-        child: Scaffold(
-          body: Container(
-            height: double.infinity,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFFFFFFF),
-                  Color(0xFFD1FFFF),
-                  Color(0xFF88ECF8),
-                  Color(0xFF65DCDC),
-                ],
-                stops: [0.1, 0.5, 0.7, 0.9],
-              ),
-            ),
-            //color: Colors.black,
-            padding: const EdgeInsets.all(16.0),
-            // we use child container property and used most important property column that accepts multiple widgets
-
-            child: ResponsiveWrapper(
-              maxWidth: 1200,
-              minWidth: 480,
-              defaultScale: true,
-              breakpoints: const [
-                ResponsiveBreakpoint.resize(480, name: MOBILE),
-                ResponsiveBreakpoint.autoScale(800, name: TABLET),
-                ResponsiveBreakpoint.resize(1000, name: DESKTOP),
-                ResponsiveBreakpoint.autoScale(2460, name: '4K'),
+    Widget _WidgetportraitMode(double Pr_height, Pr_width) {
+      return Scaffold(
+        body: Container(
+          height: Pr_height,
+          width: Pr_width,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFFFFFFF),
+                Color(0xFFD1FFFF),
+                Color(0xFF88ECF8),
+                Color(0xFF65DCDC),
               ],
-              child: Column(
-                children: <Widget>[
-                  const SizedBox(
-                    height: 150,
-                  ),
-                  Container(
-                    height: 250,
-                    child: Image.asset("assets/aisonr.png"),
-                  ),
-                  const SizedBox(
-                    height: 29.0,
-                  ),
-                  SizedBox(
-                    height: 8,
-                  ),
-                  Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: lblLogin),
-                  SizedBox(
-                    height: 8,
-                  ),
-                  Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: lblcredentials),
-                  const SizedBox(
-                    height: 55,
-                  ),
-                  Form(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 370,
-                          child: Visibility(child: txtEmail),
-                        ),
-                        const SizedBox(
-                          height: 3,
-                        ),
-                        const Divider(
-                          endIndent: 79,
-                          indent: 79,
-                          thickness: 1.5,
-                        ),
-                        const SizedBox(
-                          height: 3,
-                        ),
-                        SizedBox(
-                          width: 370,
-                          child: TextFormField(
-                            obscureText: G_isSecurePassword,
-                            controller: txtPass,
-                            decoration: InputDecoration(
-                              hintText: 'Enter Password',
-                              hintStyle: const TextStyle(color: Colors.black26),
-                              labelText: ' Password',
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.always,
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                  borderSide:
-                                      const BorderSide(color: Colors.white38)),
-                              prefixIcon: const Icon(MdiIcons.fingerprint,
-                                  size: 20, color: Colors.indigo),
-                              suffixIcon: togglepassword(),
-                            ),
-                          ),
-                        ),
-                      ],
+              stops: [0.1, 0.5, 0.7, 0.9],
+            ),
+          ),
+          //color: Colors.black,
+          padding: const EdgeInsets.all(16.0),
+          // we use child container property and used most important property column that accepts multiple widgets
+
+          child: SingleChildScrollView(
+            child: Stack(
+              children: <Widget>[
+                Container(
+                  height: 500,
+                ),
+                Padding(
+                    padding: EdgeInsets.only(top: Pr_height * 0.150),
+                    child: Center(
+                      child: Image.asset(
+                        "assets/aisonr.png",
+                        width: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    )),
+                Padding(
+                    padding: EdgeInsets.only(top: Pr_height * 0.350),
+                    child: Center(child: lblLogin)),
+                Container(
+                  margin: EdgeInsets.only(top: Pr_height * 0.400),
+                  child: Center(child: lblcredentials),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: Pr_height * 0.450),
+                  child: Center(
+                    child: SizedBox(
+                      width: Pr_width * .890,
+                      child: Visibility(child: G_UWEmail),
                     ),
                   ),
-                  const SizedBox(
-                    height: 3,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text("Remember me"),
-                      Checkbox(
-                          value: isChecked,
-                          onChanged: (value) {
-                            isChecked = !isChecked;
-                            setState(() {});
-                          })
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 3,
-                  ),
-                  Divider(
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: Pr_height * 0.525),
+                  child: Divider(
                     endIndent: 79,
                     indent: 79,
                     thickness: 1.5,
                   ),
-                  const SizedBox(
-                    height: 18,
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: Pr_height * 0.550),
+                  child: Center(
+                    child: SizedBox(
+                      width: Pr_width * .890,
+                      child: TextFormField(
+                        obscureText: G_isSecurePassword,
+                        controller: G_TxtPass,
+                        decoration: InputDecoration(
+                          hintText: 'Enter Password',
+                          hintStyle: const TextStyle(color: Colors.black26),
+                          labelText: ' Password',
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide:
+                                  const BorderSide(color: Colors.white38)),
+                          prefixIcon: const Icon(MdiIcons.fingerprint,
+                              size: 20, color: Colors.indigo),
+                          suffixIcon: togglepassword(),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(
-                    width: 200,
-                    child: RoundedLoadingButton(
-                        elevation: 5.0,
-                        borderRadius: 5,
-                        resetAfterDuration: G_LoadingButtonReset,
-                        resetDuration: Duration(seconds: 3),
-                        child: Text('Login',
-                            style: GoogleFonts.ubuntu(
-                                textStyle: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 20,
-                                    letterSpacing: .5))),
-                        controller: Loading_Button,
-                        onPressed: () {
-                          FncOnTap();
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: Pr_height * 0.625),
+                  child: Divider(
+                    endIndent: 79,
+                    indent: 79,
+                    thickness: 1.5,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: Pr_height * 0.650),
+                  child: Center(child: Text("Remember me")),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                      top: Pr_height * 0.631, left: Pr_width * .570),
+                  child: Checkbox(
+                      value: G_isChecked,
+                      onChanged: (value) {
+                        G_isChecked = !G_isChecked;
+                        setState(() {});
+                      }),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: Pr_height * 0.680),
+                  child: Divider(
+                    endIndent: 120,
+                    indent: 120,
+                    thickness: 1.5,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: Pr_height * 0.710),
+                  child: Center(
+                    child: SizedBox(
+                      width: 200,
+                      child: RoundedLoadingButton(
+                          elevation: 5.0,
+                          borderRadius: 5,
+                          resetAfterDuration: G_LoadingButtonReset,
+                          resetDuration: Duration(seconds: 3),
+                          child: Text('Login',
+                              style: GoogleFonts.ubuntu(
+                                  textStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 20,
+                                      letterSpacing: .5))),
+                          controller: G_Loginloading_Button,
+                          onPressed: () {
+                            FncOnTap();
+                          }),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget _WidgetlandscapeMode(double Pr_height, Pr_width) {
+      return Scaffold(
+        body: Container(
+          height: Pr_height,
+          width: Pr_width,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFFFFFFF),
+                Color(0xFFD1FFFF),
+                Color(0xFF88ECF8),
+                Color(0xFF65DCDC),
+              ],
+              stops: [0.1, 0.5, 0.7, 0.9],
+            ),
+          ),
+          //color: Colors.black,
+          padding: const EdgeInsets.all(16.0),
+          // we use child container property and used most important property column that accepts multiple widgets
+
+          child: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).requestFocus(new FocusNode());
+            },
+            child: SingleChildScrollView(
+              physics: !keyboardIsOpen
+                  ? NeverScrollableScrollPhysics()
+                  : BouncingScrollPhysics(),
+              child: Stack(
+                children: <Widget>[
+                  Container(
+                    height: 500,
+                  ),
+                  Padding(
+                      padding: EdgeInsets.only(
+                          top: Pr_height * 0.290, left: Pr_width * 0.1),
+                      child: SizedBox(
+                          child: Image.asset(
+                        "assets/aisonr.png",
+                        width: 150,
+                        fit: BoxFit.cover,
+                      ))),
+                  Padding(
+                      padding: EdgeInsets.only(
+                          top: Pr_height * 0.100, left: Pr_width * 0.600),
+                      child: lblLogin),
+                  Padding(
+                      padding: EdgeInsets.only(
+                          top: Pr_height * 0.200, left: Pr_width * 0.550),
+                      child: lblcredentials),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: Pr_height * 0.320, left: Pr_width * 0.390),
+                    child: SizedBox(
+                      width: Pr_width * .890,
+                      child: Visibility(child: G_UWEmail),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: Pr_height * 0.460, left: Pr_width * 0.390),
+                    child: Divider(
+                      endIndent: 79,
+                      indent: 79,
+                      thickness: 1.5,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: Pr_height * 0.500, left: Pr_width * 0.390),
+                    child: SizedBox(
+                      width: Pr_width * .890,
+                      child: TextFormField(
+                        obscureText: G_isSecurePassword,
+                        controller: G_TxtPass,
+                        decoration: InputDecoration(
+                          hintText: 'Enter Password',
+                          hintStyle: const TextStyle(color: Colors.black26),
+                          labelText: ' Password',
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide:
+                                  const BorderSide(color: Colors.white38)),
+                          prefixIcon: const Icon(MdiIcons.fingerprint,
+                              size: 20, color: Colors.indigo),
+                          suffixIcon: togglepassword(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: Pr_height * 0.640, left: Pr_width * 0.390),
+                    child: Divider(
+                      endIndent: 79,
+                      indent: 79,
+                      thickness: 1.5,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: Pr_height * 0.710, left: Pr_width * 0.600),
+                    child: Text("Remember me"),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: Pr_height * 0.675, left: Pr_width * 0.730),
+                    child: Checkbox(
+                        value: G_isChecked,
+                        onChanged: (value) {
+                          G_isChecked = !G_isChecked;
+                          setState(() {});
                         }),
                   ),
-                  const SizedBox(
-                    height: 20,
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: Pr_height * 0.760, left: Pr_width * 0.390),
+                    child: Divider(
+                      endIndent: 120,
+                      indent: 120,
+                      thickness: 1.5,
+                    ),
                   ),
-                  const SizedBox(
-                    height: 20,
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: Pr_height * 0.790, left: Pr_width * 0.550),
+                    child: SizedBox(
+                      width: 200,
+                      child: RoundedLoadingButton(
+                          elevation: 5.0,
+                          borderRadius: 5,
+                          resetAfterDuration: G_LoadingButtonReset,
+                          resetDuration: Duration(seconds: 3),
+                          child: Text('Login',
+                              style: GoogleFonts.ubuntu(
+                                  textStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 20,
+                                      letterSpacing: .5))),
+                          controller: G_Loginloading_Button,
+                          onPressed: () {
+                            FncOnTap();
+                          }),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
+//#endregion
+// =============================================
 
-    //=============================================
+      return GestureDetector(
+        onTap: () {
+          //when tap anywhere on screen keyboard dismiss
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        child: OrientationBuilder(
+          builder: (BuildContext context, Orientation orientation) {
+            return LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                //Get device's screen height and width.
+                double height = constraints.maxHeight;
+                double width = constraints.maxWidth;
+
+                if (width >= 300 && width < 500) {
+                  return _WidgetportraitMode(height, width);
+                } else {
+                  return _WidgetlandscapeMode(height, width);
+                }
+              },
+            );
+          },
+        ),
+      );
   }
 
+//#endregion
+
+  //===========================================DartCode=====================================
+
   //#region Startup
-  FncstartupSettings() {
+  void FncstartupSettings() {
     //TextFields
-    txtEmail.TxtHintText = "Enter Email";
-    txtEmail.labelText = "Email";
+    G_UWEmail.TxtHintText = "Enter Email";
+    G_UWEmail.labelText = "Email";
 
     //Labels
     lblLogin.TxtText = "Login";
@@ -327,6 +468,60 @@ class _vi_loginState extends State<vi_login> {
     lblAppmode.color = Colors.black38;
   }
 
+  void FncFirebaseNotification() {
+    FirebaseMessaging.instance.getInitialMessage().then(
+      (message) {
+        print("FirebaseMessaging.instance.getInitialMessage");
+        if (message != null) {
+          print("New Notification");
+        }
+      },
+    );
+
+    FirebaseMessaging.onMessage.listen(
+      (message) {
+        print("FirebaseMessaging.onMessage.listen");
+        if (message.notification != null) {
+          print(message.notification!.title);
+          print(message.notification!.body);
+          print("message.data11 ${message.data}");
+          // LocalNotificationService.display(message);
+
+        }
+      },
+    );
+
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      (message) {
+        print("FirebaseMessaging.onMessageOpenedApp.listen");
+        if (message.notification != null) {
+          print(message.notification!.title);
+          print(message.notification!.body);
+          print("message.data22 ${message.data['_id']}");
+        }
+      },
+    );
+  }
+
+  void FncCheckDeviceInternetContineous() {
+    G_Connection_subscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult l_result) {
+      if (l_result == ConnectivityResult.none) {
+        setState(() {
+          G_InternetConnectionStatus = "Offline";
+          Get.snackbar("Network", "Device is Offline Check Your Internet");
+
+          print(G_InternetConnectionStatus);
+        });
+      } else {
+        G_InternetConnectionStatus = "Online";
+        Get.snackbar("Network", "Device is Online");
+        print(G_InternetConnectionStatus);
+      }
+    });
+  }
+
 //#endregion
 
   //#region Events
@@ -335,9 +530,9 @@ class _vi_loginState extends State<vi_login> {
 //==================Validations
 
     if (await FncCheckWifiMobileNetwork() == true) {
-      if (await FncCheckInternetAvailible() == true ) {
+      if (await FncCheckInternetAvailible() == true) {
         print("InternetDOne");
-        login_DB();
+        Fnc_LoginfromDB();
         void _doSomething(RoundedLoadingButtonController controller) async {
           Timer(Duration(seconds: 3), () async {
             controller.reset();
@@ -349,7 +544,6 @@ class _vi_loginState extends State<vi_login> {
               if (await Fnc_WValidateUser() == true) {
                 if (await Fnc_OnlineProcedures() == true) {
                   Get.to(() => const vi_CompanyLIst());
-                  //Get.to(() => const Test());
                 }
               } else {
                 Get.snackbar("ALERT", "Login Failed ");
@@ -369,24 +563,19 @@ class _vi_loginState extends State<vi_login> {
           }
         }
       }
-
-
-
     }
-
-
   }
 
 //#endregion
 
-//#region Validations
+  //#region Validations
   bool Fnc_ValidateLogin() {
-    if (txtEmail.txtController.text.isEmpty == true) {
+    if (G_UWEmail.txtController.text.isEmpty == true) {
       Get.snackbar("ALERT", "Email is required ");
       return false;
     }
 
-    if (txtPass.text.isEmpty == true) {
+    if (G_TxtPass.text.isEmpty == true) {
       Get.snackbar("ALERT", "Password is required ");
       return false;
     }
@@ -396,7 +585,7 @@ class _vi_loginState extends State<vi_login> {
 
   Future<bool> Fnc_WValidateUser() async {
     ModUserProfile? l_ModUserProfile = await new SlwUserLogin().Fnc_UserProfile(
-        txtEmail.txtController.text.toString(), txtPass.text.toString());
+        G_UWEmail.txtController.text.toString(), G_TxtPass.text.toString());
     if (l_ModUserProfile == null) {
       Get.snackbar("Alert", "Invalid Login Information");
       return false;
@@ -405,20 +594,20 @@ class _vi_loginState extends State<vi_login> {
     cmGlobalVariables.Pb_UserName = l_ModUserProfile.Pr_FullName;
     cmGlobalVariables.Pb_UserEmail = l_ModUserProfile.Pr_EmailID;
     cmGlobalVariables.Pb_UserNumber = l_ModUserProfile.Pr_ContactNo;
-
+    cmGlobalVariables.Pb_UserImage = l_ModUserProfile.Pr_Image;
     Get.snackbar("Alert", "Login Successful");
-
     return true;
   }
 
 //#endregion
 
+  //#region Methods
   Future<bool> Fnc_OnlineProcedures() async {
     List<ModCompanySettingQuery>? l_list_CompanyList =
         new List<ModCompanySettingQuery>.empty(growable: true);
 
     l_list_CompanyList = await new SlwLogin().WLogin_Api_Call(
-        txtEmail.txtController.text.toString(), txtPass.text.toString());
+        G_UWEmail.txtController.text.toString(), G_TxtPass.text.toString());
 
     if (l_list_CompanyList == null) {
       Get.snackbar("Alert", "Invalid Login Information");
@@ -435,39 +624,36 @@ class _vi_loginState extends State<vi_login> {
     return true;
   }
 
-  void createBox() async {
-    box1 = await Hive.openBox("name");
-    GetData();
+  void Fnc_CreateDBBox() async {
+    G_DBbox = await Hive.openBox("name");
+    FncStoreDataDBBox();
   }
 
-  void GetData() {
-    if (box1.get('txtEmail') != null) {
-      txtEmail.txtController.text = box1.get('txtEmail');
-      isChecked = true;
+  void FncStoreDataDBBox() {
+    if (G_DBbox.get('txtEmail') != null) {
+      G_UWEmail.txtController.text = G_DBbox.get('txtEmail');
+      G_isChecked = true;
     }
     ;
 
-    if (box1.get('txtPass') != null) {
-      txtPass.text = box1.get('txtPass');
-      isChecked = true;
+    if (G_DBbox.get('txtPass') != null) {
+      G_TxtPass.text = G_DBbox.get('txtPass');
+      G_isChecked = true;
     }
     ;
   }
 
-  void login_DB() {
-    if (isChecked) {
-      box1.put('txtEmail', txtEmail.txtController.text);
-      box1.put('txtPass', txtPass.text);
+  void Fnc_LoginfromDB() {
+    if (G_isChecked) {
+      G_DBbox.put('txtEmail', G_UWEmail.txtController.text);
+      G_DBbox.put('txtPass', G_TxtPass.text);
     }
   }
 
-  Future<bool?>FncCheckInternetAvailible() async {
-    bool result = await InternetConnectionChecker().hasConnection;
+  Future<bool?> FncCheckInternetAvailible() async {
+    bool l_internetResponse = await InternetConnectionChecker().hasConnection;
 
-
-
-    if(result == false){
-
+    if (l_internetResponse == false) {
       print("Your Network has No Internet");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -476,7 +662,10 @@ class _vi_loginState extends State<vi_login> {
             label: "",
             onPressed: () {},
           ),
-          content: const Text('Your Network has No Internet',style: TextStyle(color: Colors.black87),),
+          content: const Text(
+            'Your Network has No Internet',
+            style: TextStyle(color: Colors.black87),
+          ),
           duration: const Duration(milliseconds: 2550),
           width: 280.0,
           // Width of the SnackBar.
@@ -491,14 +680,9 @@ class _vi_loginState extends State<vi_login> {
         ),
       );
 
-
-
-      return result;
-
+      return l_internetResponse;
     }
-    return result;
-
-
+    return l_internetResponse;
   }
 
   Future<bool> FncCheckWifiMobileNetwork() async {
@@ -523,6 +707,15 @@ class _vi_loginState extends State<vi_login> {
     }
 
     return true;
-
   }
+
+  Future<void> FncgetDeviceTokenToSendNotification() async {
+    final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+    final token = await _fcm.getToken();
+    G_deviceTokenToSendPushNotification = token.toString();
+    print("Token Value $G_deviceTokenToSendPushNotification");
+  }
+
+//#endregion
+
 }

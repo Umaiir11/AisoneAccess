@@ -1,12 +1,12 @@
 <variant
     name="release"
     package="com.example.aisoneaccess"
-    minSdkVersion="16"
+    minSdkVersion="21"
     targetSdkVersion="31"
     shrinking="true"
-    mergedManifest="E:\aisoneaccess\build\app\intermediates\merged_manifest\release\AndroidManifest.xml"
-    proguardFiles="E:\aisoneaccess\build\app\intermediates\default_proguard_files\global\proguard-android.txt-7.1.2;C:\flutter\packages\flutter_tools\gradle\flutter_proguard_rules.pro;proguard-rules.pro"
-    partialResultsDir="E:\aisoneaccess\build\app\intermediates\lint_vital_partial_results\release\out">
+    mergedManifest="E:\a\aisoneaccess\build\app\intermediates\merged_manifest\release\AndroidManifest.xml"
+    proguardFiles="E:\a\aisoneaccess\build\app\intermediates\default_proguard_files\global\proguard-android.txt-7.1.2;C:\flutter\packages\flutter_tools\gradle\flutter_proguard_rules.pro;proguard-rules.pro"
+    partialResultsDir="E:\a\aisoneaccess\build\app\intermediates\lint_vital_partial_results\release\out">
   <buildFeatures
       namespacing="REQUIRED"/>
   <sourceProviders>
@@ -29,9 +29,9 @@
         value="android.app.Application" />
   </manifestPlaceholders>
   <mainArtifact
-      classOutputs="E:\aisoneaccess\build\app\intermediates\javac\release\classes;E:\aisoneaccess\build\app\tmp\kotlin-classes\release;E:\aisoneaccess\build\app\kotlinToolingMetadata;E:\aisoneaccess\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\release\R.jar"
-      applicationId="com.example.aisoneaccess"
-      generatedSourceFolders="E:\aisoneaccess\build\app\generated\ap_generated_sources\release\out;E:\aisoneaccess\build\app\generated\aidl_source_output_dir\release\out;E:\aisoneaccess\build\app\generated\source\buildConfig\release;E:\aisoneaccess\build\app\generated\renderscript_source_output_dir\release\out"
-      generatedResourceFolders="E:\aisoneaccess\build\app\generated\res\rs\release;E:\aisoneaccess\build\app\generated\res\resValues\release">
+      classOutputs="E:\a\aisoneaccess\build\app\intermediates\javac\release\classes;E:\a\aisoneaccess\build\app\tmp\kotlin-classes\release;E:\a\aisoneaccess\build\app\kotlinToolingMetadata;E:\a\aisoneaccess\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\release\R.jar"
+      applicationId="com.example.untitled11"
+      generatedSourceFolders="E:\a\aisoneaccess\build\app\generated\ap_generated_sources\release\out;E:\a\aisoneaccess\build\app\generated\aidl_source_output_dir\release\out;E:\a\aisoneaccess\build\app\generated\source\buildConfig\release;E:\a\aisoneaccess\build\app\generated\renderscript_source_output_dir\release\out"
+      generatedResourceFolders="E:\a\aisoneaccess\build\app\generated\res\google-services\release;E:\a\aisoneaccess\build\app\generated\res\rs\release;E:\a\aisoneaccess\build\app\generated\res\resValues\release">
   </mainArtifact>
 </variant>

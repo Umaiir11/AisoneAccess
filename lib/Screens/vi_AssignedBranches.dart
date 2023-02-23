@@ -3,10 +3,10 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:marquee/marquee.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../ClassModules/cmGlobalVariables.dart';
 import '../Models/EModel/ModBranchSetting.dart';
@@ -40,25 +40,86 @@ class _vi_AssignedBranchesState extends State<vi_AssignedBranches> {
   Widget build(BuildContext context) {
     return Scaffold(
 
-      bottomNavigationBar:
-      SizedBox(
-        height: 23,
-        child: BottomAppBar(elevation: 4.0,
-            color: Colors.black,
-            child: Marquee(fadingEdgeEndFraction: .2,
-              text: 'Powered by - aisonesystems.com',
-              style: TextStyle( fontSize:18,color: Colors.white),
-              scrollAxis: Axis.horizontal, //scroll direction
-              crossAxisAlignment: CrossAxisAlignment.start,
-              blankSpace: 20.0,
-              velocity: 50.0, //speed
-              //pauseAfterRound: Duration(seconds: 5),
-              startPadding: 10.0,
-              accelerationDuration: Duration(seconds: 5),
-              accelerationCurve: Curves.linear,
-              decelerationDuration: Duration(milliseconds: 1000),
-              decelerationCurve: Curves.easeOut,
+      bottomNavigationBar: SizedBox(
+        height: 33,
+        child:BottomAppBar(
+            elevation: 10.0,
+            color: Colors.cyan.shade200,
+            child: ResponsiveWrapper(
+              maxWidth: 1200,
+              minWidth: 480,
+              defaultScale: true,
+              breakpoints: const [
+                ResponsiveBreakpoint.resize(480, name: MOBILE),
+                ResponsiveBreakpoint.autoScale(800, name: TABLET),
+                ResponsiveBreakpoint.resize(1000, name: DESKTOP),
+                ResponsiveBreakpoint.autoScale(2460, name: '4K'),
+              ],
+              child: Stack(
+                children: [
+
+
+
+                  Container(height :100,),
+                  Container(
+                    margin: EdgeInsets.only(top: 7.5, left: 84),
+                    child: InkWell(
+                      onTap: () => launchUrl(Uri.parse('https://www.aisonesystems.com/')),
+                      child: Text(
+                        'Powered by - aisonesystems.com',style:
+
+                      GoogleFonts.ubuntu(
+                          textStyle: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black54,
+                              letterSpacing: .5)),
+                      ),
+                    ),
+                  ),
+
+
+
+                  Container(
+                    margin: EdgeInsets.only(top: 0, left: 385),
+
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.phone_forwarded_outlined, size: 25,color: Colors.indigoAccent,
+                      ),
+                      onPressed: () async {
+                        Uri phoneno = Uri.parse('tel:+923214457734');
+                        if (await launchUrl(phoneno)) {
+                          //dialer opened
+                        }else{
+                          //dailer is not opened
+                        }
+                      },
+                    ),
+                  ),
+
+                  Container(
+                    margin: EdgeInsets.only(top: 0, left: 22),
+
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.whatsapp_outlined, size: 25,color: Colors.green,
+                      ),
+                      onPressed: () async {
+
+                        var whatsapp = "+923214457734";
+                        Uri whatsappopen = Uri.parse("whatsapp://send?phone=$whatsapp");
+                        if (await launchUrl(whatsappopen)) {
+                          //dialer opened
+                        }else{
+                          //dailer is not opened
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
             )
+
 
         ),
       ),

@@ -32,11 +32,11 @@ class ULabels extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle l_TestStyle = TextStyle(
-        fontSize: TxtFontSize,
-        color: TxtColor,
-        fontWeight: FontWeight.w600,
-        letterSpacing: .5);
+      TextStyle l_TestStyle = TextStyle(
+          fontSize: TxtFontSize,
+          color: TxtColor,
+          fontWeight: FontWeight.w600,
+          letterSpacing: .5);
 
     return Text(TxtText,
         style: GoogleFonts.ubuntu(

@@ -7,7 +7,7 @@ class ModUserProfile{
   String Pr_EmailID  = "";
   String Pr_FullName  = "";
   String Pr_ContactNo  = "";
-  var Pr_Image = 0;
+  String Pr_Image = "";
 
 }
 

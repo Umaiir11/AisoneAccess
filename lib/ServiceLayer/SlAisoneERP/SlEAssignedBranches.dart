@@ -1,36 +1,28 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:http/http.dart' as http;
 
 import '../../../ClassModules/cmHttpCalls.dart';
 import '../../../Models/EModel/ModBranchSetting.dart';
 import '../../ClassModules/cmGlobalVariables.dart';
-import '../../ClassModules/cmHttpCalls.dart';
-import '../../Models/EModel/ModBranchSetting.dart';
+
 
 class SlEAssignedBranches {
   Future<List<ModAssignedBranches>?> Fnc_AssignedBranches() async {
     try {
 
-
-    String a=    cmGlobalVariables.Pb_UserDID!;
-    print(a);
-    print(a);
-  //String? l_Where ="where VMDID=" + cmGlobalVariables.Pb_UserDID!;
-      //" Where UserDID = '" & Pb_UserDID.ToString & "' and IsAssigned = 1"
       final body = {
+
+
         "Pr_Branchid": "1",
         "Pr_WhereClause": "where UserDID='" +cmGlobalVariables.Pb_UserDID!+"'",
         "Pr_GroupByClause": "",
         "Pr_OrderByClause": ""
       };
-     // Uri l_uri = Uri.http(ipAddress, '/RptAssignedBranches/Fnc_Read_Sp');
 
       String l_jsonString = json.encode((body));
       List<int> l_UtfContent = utf8.encode(l_jsonString);
 
-      final l_response = await new cmHttpCalls().Fnc_HttpResponseERPBoth('RptAssignedBranches/Fnc_Read_Sp', l_UtfContent);
+      final l_response = await new cmHttpCalls().Fnc_HttpResponseERPBoth('/RptAssignedBranches/Fnc_Read_Sp', l_UtfContent);
 
       if (l_response.statusCode == 200) {
 

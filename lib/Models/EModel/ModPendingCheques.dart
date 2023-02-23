@@ -15,7 +15,7 @@ class ModI_PendingCheques
   double   Pr_Amount = 0 ;
   double   Pr_PendingDebit = 0 ;
   double   Pr_PendingCredit = 0 ;
-  String Pr_ChequeStatusDID = "" ;
+  int Pr_ChequeStatusDID = 0 ;
   String Pr_ChequeStatus = "" ;
   int Pr_ChequeType = 0 ;
   bool Pr_PostedID = false ;

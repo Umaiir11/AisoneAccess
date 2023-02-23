@@ -1,25 +1,21 @@
-import 'package:aisoneaccess/Screens/vi_LedgerPDF.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:responsive_framework/responsive_wrapper.dart';
-import 'package:shimmer/shimmer.dart';
-
-import '../ClassModules/cmGlobalVariables.dart';
-import '../Models/EModel/ModPendingCheques.dart';
-import '../ServiceLayer/SlAisoneERP/SleRptPdf.dart';
-import '../UserWidgets/Labels/UWLabels.dart';
-import '../UserWidgets/Labels/Ulabels.dart';
-
-
 import 'dart:convert';
 import 'dart:typed_data';
 
-
+import 'package:aisoneaccess/Screens/vi_LedgerPDF.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:responsive_framework/responsive_wrapper.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../ClassModules/cmGlobalVariables.dart';
+import '../Models/EModel/ModUserAccountsQuery.dart';
+import '../ServiceLayer/SlAisoneERP/SleRptPdf.dart';
+import '../UserWidgets/Labels/Ulabels.dart';
+import '../Models/EModel/ModPendingCheques.dart';
 
 class vi_PendingCheques extends StatefulWidget {
   const vi_PendingCheques({Key? key}) : super(key: key);
@@ -29,27 +25,162 @@ class vi_PendingCheques extends StatefulWidget {
 }
 
 class _vi_PendingChequesState extends State<vi_PendingCheques> {
-  @override
 
-  late RxList<ModI_PendingCheques> l_AccountLedger =
+
+  bool isFolded = true;
+  late RxList<ModI_PendingCheques> l_ListPendingSO =
   Get.find(tag: "Rx_l_listIPendingCheques");
 
+  List<ModI_PendingCheques> l_List_Elements = <ModI_PendingCheques>[];
+
+  //UserWidgets
   ULabels lblCompanyList = new ULabels();
   ULabels lblCompanyName = new ULabels();
+  ULabels lblAppBar = new ULabels();
 
-  final G_currencyFormat = new NumberFormat("#,00.#####", "en_US");
+  //Controller
+  TextEditingController _textController = TextEditingController();
+  final G_currencyFormat = new NumberFormat("#,##0", "en_US");
   final DateFormat G_DateTimeFormat = DateFormat('dd-MMM-yy');
+  var SelectedDID;
+  ModUserAccountsQuery? _selectedObject;
 
   @override
   void initState() {
     super.initState();
+    l_List_Elements.addAll(l_ListPendingSO);
     FncstartupSettings();
     FncReport();
+    _selectedObject = cmGlobalVariables.Pb_ListUserAccountsQuery[0];
 
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //extendBodyBehindAppBar: true,
+
+      appBar: AppBar(
+
+        actions: <Widget>[
+          IconButton(
+              icon: Icon(Icons.picture_as_pdf_sharp),
+              onPressed:() async {
+                if (await FncReport() == true) {
+                  Get.to(() => Controll());
+                } else {
+                  Get.snackbar(
+                      "Alert", "No DATA, Please Contact Your Administrator");
+                }
+              }
+
+
+
+
+
+          ),
+        ],
+
+        centerTitle: true,
+        toolbarHeight: 42,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFFFFFFFF),
+                Color(0xFFD1FFFF),
+                Color(0xFFD1FFFF),
+                Color(0xFF88ECF8),
+              ],
+            ),
+          ),
+        ),
+        title: Shimmer.fromColors(
+            baseColor: Colors.black38,
+            highlightColor: Colors.cyanAccent,
+            child: lblAppBar),
+        // backgroundColor: Colors.transparent,
+        elevation: 4.0,
+      ),
+
+      bottomNavigationBar: SizedBox(
+        height: 33,
+        child: BottomAppBar(
+            elevation: 10.0,
+            color: Colors.cyan.shade200,
+            child: ResponsiveWrapper(
+              maxWidth: 1200,
+              minWidth: 480,
+              defaultScale: true,
+              breakpoints: const [
+                ResponsiveBreakpoint.resize(480, name: MOBILE),
+                ResponsiveBreakpoint.autoScale(800, name: TABLET),
+                ResponsiveBreakpoint.resize(1000, name: DESKTOP),
+                ResponsiveBreakpoint.autoScale(2460, name: '4K'),
+              ],
+              child: Stack(
+                children: [
+                  Container(
+                    height: 100,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 7.5, left: 84),
+                    child: InkWell(
+                      onTap: () =>
+                          launchUrl(
+                              Uri.parse('https://www.aisonesystems.com/')),
+                      child: Text(
+                        'Powered by - aisonesystems.com',
+                        style: GoogleFonts.ubuntu(
+                            textStyle: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black54,
+                                letterSpacing: .5)),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 0, left: 385),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.phone_forwarded_outlined,
+                        size: 25,
+                        color: Colors.indigoAccent,
+                      ),
+                      onPressed: () async {
+                        Uri phoneno = Uri.parse('tel:+923214457734');
+                        if (await launchUrl(phoneno)) {
+                          //dialer opened
+                        } else {
+                          //dailer is not opened
+                        }
+                      },
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 0, left: 22),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.whatsapp_outlined,
+                        size: 25,
+                        color: Colors.green,
+                      ),
+                      onPressed: () async {
+                        var whatsapp = "+923214457734";
+                        Uri whatsappopen =
+                        Uri.parse("whatsapp://send?phone=$whatsapp");
+                        if (await launchUrl(whatsappopen)) {
+                          //dialer opened
+                        } else {
+                          //dailer is not opened
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            )),
+      ),
       body: Container(
           height: double.infinity,
           width: double.infinity,
@@ -63,347 +194,396 @@ class _vi_PendingChequesState extends State<vi_PendingCheques> {
                 Color(0xFF88ECF8),
                 Color(0xFF65DCDC),
               ],
-              stops: [0.1, 0.5, 0.7, 0.9],
+              stops: [0.0, 0.5, 0.7, 0.9],
             ),
           ),
-          child: SingleChildScrollView(
-            child: ResponsiveWrapper(
-              maxWidth: 1200,
-              minWidth: 480,
-              defaultScale: true,
-              breakpoints: const [
-                ResponsiveBreakpoint.resize(480, name: MOBILE),
-                ResponsiveBreakpoint.autoScale(800, name: TABLET),
-                ResponsiveBreakpoint.resize(1000, name: DESKTOP),
-                ResponsiveBreakpoint.autoScale(2460, name: '4K'),
-              ],
-              child: Stack(
-                children: <Widget>[
-                  Container(
-                    height: 500,
+        child: Stack(
+          children: <Widget>[
+            Container(
+                margin: EdgeInsets.only(top: 0, left: 0),
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width,
+                height: 122,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(5),
+                    topRight: Radius.circular(5),
+                    bottomLeft: Radius.circular(5),
+                    bottomRight: Radius.circular(5),
                   ),
-
-                  Container(
-                    margin: EdgeInsets.only(top: 115, left: 398),
-                    child: TextButton(onPressed: (){
-                      Get.to(() => Controll());
-                      print("zaxsd");
-                    },
-                      child: SizedBox(
-                        height: 38,
-                        child: Image.asset("assets/pdf.png"),
-                      ),),
-
+                  boxShadow: [
+                    BoxShadow(
+                        color: Color.fromRGBO(0, 0, 0, 0.25),
+                        offset: Offset(0, 4),
+                        blurRadius: 2)
+                  ],
+                  color: Color.fromRGBO(101, 227, 227, 1),
+                  border: Border.all(
+                    color: Color.fromRGBO(101, 227, 227, 1),
+                    width: 1,
                   ),
+                )),
 
-                  Container(
-
-                    margin: EdgeInsets.only(top: 65, left: 127),
-                    child: Shimmer.fromColors(
-                        baseColor: Colors.black26,
-                        highlightColor: Colors.cyanAccent,
-                        child: lblCompanyList),
+            //image
+            Container(
+                margin: EdgeInsets.only(
+                  top: 20,
+                  left: 0,
+                ),
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(5),
+                    topRight: Radius.circular(5),
+                    bottomLeft: Radius.circular(5),
+                    bottomRight: Radius.circular(5),
                   ),
-                  //Cards and Decorated Containers
-                  Container(
-                    margin: EdgeInsets.only(top: 140, left: 0),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: l_AccountLedger.length,
-                      itemBuilder: (context, index) {
-                        //get selected index on tap,
-                        //after that got Company Did that index
-                        return Column(
-                          children: [
-                            InkWell(
-                              onTap: () async {
+                  boxShadow: [
+                    BoxShadow(
+                        color: Color.fromRGBO(0, 0, 0, 0.06274509803921569),
+                        offset: Offset(1, 1),
+                        blurRadius: 2)
+                  ],
+                  border: Border.all(
+                    color: Color.fromRGBO(101, 227, 227, 1),
+                    width: 1,
+                  ),
+                  image: DecorationImage(
+                      image: AssetImage("assets/ledger.gif"),
+                      fit: BoxFit.fitWidth),
+                )),
+//DropDown
+            Container(
+              margin: EdgeInsets.only(top: 10, left: 95),
+              child: DropdownButton<ModUserAccountsQuery>(
+                style: GoogleFonts.ubuntu(
+                    textStyle: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black45,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: .5)),
+                hint: Text("Tap For Accounts Details"),
+                elevation: 5,
+                value: _selectedObject,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedObject = newValue!;
+                    var Index =
+                    cmGlobalVariables.Pb_ListUserAccountsQuery.indexOf(
+                        newValue);
+                    cmGlobalVariables.Pb_SelectedDID = cmGlobalVariables
+                        .Pb_ListUserAccountsQuery[Index].Pr_AccountsDID;
+                    print(cmGlobalVariables.Pb_SelectedDID);
+                    print(cmGlobalVariables.Pb_SelectedDID);
+                    // Fnc_AccountLedger3();
+                  });
 
+                  print(newValue);
+                  print(newValue);
+                },
+                items: cmGlobalVariables.Pb_ListUserAccountsQuery.map(
+                        (ModUserAccountsQuery object) {
+                      return DropdownMenuItem<ModUserAccountsQuery>(
+                        value: object,
+                        child: Text(object.Pr_AccountID),
+                      );
+                    }).toList(),
+              ),
+            ),
 
+//DateTime
 
+//Search bar
 
-                              },
-
-                              //CARD
-                              child: SizedBox(
-                                width: 440,
-                                height: 140,
-                                child: Card(
-
-
-                                  elevation: 5.0,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                      BorderRadius.circular(10.0)),
-                                  child: ResponsiveWrapper(
-
-                                    maxWidth: 1200,
-                                    minWidth: 480,
-                                    defaultScale: true,
-                                    breakpoints: const [
-                                      ResponsiveBreakpoint.resize(480, name: MOBILE),
-                                      ResponsiveBreakpoint.autoScale(800, name: TABLET),
-                                      ResponsiveBreakpoint.resize(1000, name: DESKTOP),
-                                      ResponsiveBreakpoint.autoScale(2460, name: '4K'),
-                                    ],
-                                    child: SingleChildScrollView(
-                                      child: Stack(
-                                        children: [
-
-                                          Container(
-                                              height:150,
-                                              decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                      colors: [
-
-                                                        (index % 2 == 0)
-                                                            ? Colors.white
-                                                            : Colors
-                                                            .white,
-                                                        (index % 2 == 0)
-                                                            ? Colors.white
-                                                            : Colors
-                                                            .white,
-                                                      ],
-
-
-                                                      //(l_AccountLedger[index].Pr_Credit == 0) ?
-                                                      // Colors.greenAccent.shade100 : Colors.lightBlue.shade100,
-                                                      // (l_AccountLedger[index].Pr_Credit == 0) ?
-                                                      // Colors.greenAccent.shade100 : Colors.lightBlue.shade100,
-                                                      // ],
-                                                      begin: Alignment.topLeft,
-                                                      end: Alignment.bottomRight),
-                                                  borderRadius:
-                                                  BorderRadius.circular(5.0),
-                                                  boxShadow: const [
-                                                    BoxShadow(
-                                                      offset: Offset(0, 4),
-                                                      color: Colors.teal,
-                                                      blurRadius: 10,
-                                                    )
-                                                  ])),
-                                          Container(
-                                              decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                      colors: [
-
-                                                        (index % 2 == 0)
-                                                            ? Colors.white
-                                                            : Colors
-                                                            .white,
-                                                        (index % 2 == 0)
-                                                            ? Colors.white
-                                                            : Colors
-                                                            .white,
-
-                                                      ],
-                                                      begin: Alignment.topLeft,
-                                                      end: Alignment.bottomRight),
-                                                  borderRadius:
-                                                  BorderRadius.circular(5.0),
-                                                  boxShadow: const [
-                                                    BoxShadow(
-                                                      offset: Offset(0, 4),
-                                                      color: Colors.teal,
-                                                      blurRadius: 10,
-                                                    )
-                                                  ])),
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 26, left: 35),
-                                            child: Text(
-                                              l_AccountLedger[index].Pr_VNO.toString(),
-                                              style:
-                                              GoogleFonts.ubuntu(textStyle:
-                                              TextStyle(
-                                                  fontSize: 28,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600,
-                                                  letterSpacing: .5)
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 70, left: 35),
-                                            child: Text(
-                                              'Debit', style:
-                                            GoogleFonts.ubuntu(textStyle:
-                                            TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.black26,
-                                                //fontWeight: FontWeight.w600,
-                                                letterSpacing: .5)
-                                            ),
-
-                                            ),
-                                          ),
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 90, left: 38),
-                                            child: Text(
-                                              G_currencyFormat.format(l_AccountLedger[index].Pr_PendingDebit),
-                                              //l_AccountLedger[index].Pr_Debit.toString(),
-                                              style: GoogleFonts.ubuntu(textStyle:
-                                              TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.lightBlue,
-                                                  fontWeight: FontWeight.w600,
-                                                  letterSpacing: .5)
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 29, left: 295),
-
-                                            child: Text(
-
-
-                                              G_DateTimeFormat.format(l_AccountLedger[index].Pr_VDate),
-                                              style:
-                                              GoogleFonts.ubuntu(textStyle:
-                                              TextStyle(
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600,
-                                                  letterSpacing: .5)
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 63, left: 300),
-                                            child: Text(
-                                              'Balance', style:
-                                            GoogleFonts.ubuntu(textStyle:
-                                            TextStyle(
-                                                fontSize: 24,
-                                                color: Colors.black26,
-                                                //fontWeight: FontWeight.w600,
-                                                letterSpacing: .5)
-                                            ),
-
-                                            ),
-                                          ),
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 90, left: 300),
-                                            child: Text(
-
-
-                                              //l_AccountLedger[index].Pr_Balance.toInt().toString() ,
-                                            l_AccountLedger[index].Pr_Remarks,
-                                              style: GoogleFonts.ubuntu(textStyle:
-                                              TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600,
-                                                  letterSpacing: .5)
-                                              ),
-                                            ),
-                                          ),
-
-
-
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 70, left: 170),
-                                            child: Text(
-                                              'Credit', style:
-                                            GoogleFonts.ubuntu(textStyle:
-                                            TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.black26,
-                                                //fontWeight: FontWeight.w600,
-                                                letterSpacing: .5)
-                                            ),
-
-                                            ),
-                                          ),
-
-
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 90, left: 174),
-                                            child: Text(
-                                              G_currencyFormat.format(l_AccountLedger[index].Pr_PendingCredit),
-                                              style:GoogleFonts.ubuntu(textStyle:
-                                              TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.green,
-                                                  fontWeight: FontWeight.w600,
-                                                  letterSpacing: .5)
-                                              ),
-                                            ),
-                                          ),
-
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 95, left: 25),
-                                            child: Text(
-                                              'RS:', style:
-                                            GoogleFonts.ubuntu(textStyle:
-                                            TextStyle(
-                                                fontSize: 8,
-                                                color: Colors.black26,
-                                                //fontWeight: FontWeight.w600,
-                                                letterSpacing: .5)
-                                            ),
-
-                                            ),
-                                          ),
-                                          //bal
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 95, left: 288),
-                                            child: Text(
-                                              'RS:', style:
-                                            GoogleFonts.ubuntu(textStyle:
-                                            TextStyle(
-                                                fontSize: 8,
-                                                color: Colors.black26,
-                                                //fontWeight: FontWeight.w600,
-                                                letterSpacing: .5)
-                                            ),
-
-                                            ),
-                                          ),
-                                          //cr
-                                          Container(
-                                            margin:
-                                            EdgeInsets.only(top: 95, left: 160),
-                                            child: Text(
-                                              'RS:', style:
-                                            GoogleFonts.ubuntu(textStyle:
-                                            TextStyle(
-                                                fontSize: 8,
-                                                color: Colors.black26,
-                                                //fontWeight: FontWeight.w600,
-                                                letterSpacing: .5)
-                                            ),
-
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
+            AnimatedContainer(
+              duration: Duration(milliseconds: 370),
+              margin: EdgeInsets.only(top: 103, left: 30),
+              width: isFolded ? 40 : 320,
+              height: 40,
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                      color: Color.fromRGBO(0, 0, 0, 0.25),
+                      offset: Offset(0, 4),
+                      blurRadius: 2)
+                ],
+                borderRadius: BorderRadius.circular(32),
+                color: Colors.grey.shade50,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Container(
+                          padding: EdgeInsets.only(left: 16),
+                          child: !isFolded
+                              ? TextField(
+                            controller: _textController,
+                            onChanged: FncfilterSearchResults,
+                            decoration: InputDecoration(
+                              hintText: "Search",
+                              hintStyle: TextStyle(color: Colors.black),
+                              border: InputBorder.none,
                             ),
-                          ],
-                        );
-                      },
+                          )
+                              : null)),
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 370),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(isFolded ? 32 : 0),
+                            topRight: Radius.circular(32),
+                            bottomLeft: Radius.circular(isFolded ? 32 : 0),
+                            bottomRight: Radius.circular(32),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(8),
+                            child: Icon(
+                              size: 20,
+                              isFolded ? Icons.search : Icons.close,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              isFolded = !isFolded;
+                            });
+                          }),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
-          )),
-    );
+
+//PDF
+
+//ListBuilder
+            Container(
+                margin: EdgeInsets.only(top: 147, left: 0),
+                child: ListView.builder(
+
+                  itemCount: l_List_Elements.length,
+                  itemBuilder: ((context, index) {
+                    return Column(
+                      children: [
+                        InkWell(
+                          onTap: () async {},
+                          child: SizedBox(
+                            width: 395,
+                            height: 110,
+                            child: Card(
+                              elevation: 5.0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                  BorderRadius.circular(10.0)),
+                              child: ResponsiveWrapper(
+                                maxWidth: 1200,
+                                minWidth: 480,
+                                defaultScale: true,
+                                breakpoints: const [
+                                  ResponsiveBreakpoint.resize(480,
+                                      name: MOBILE),
+                                  ResponsiveBreakpoint.autoScale(800,
+                                      name: TABLET),
+                                  ResponsiveBreakpoint.resize(1000,
+                                      name: DESKTOP),
+                                  ResponsiveBreakpoint.autoScale(2460,
+                                      name: '4K'),
+                                ],
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                        height: 130,
+                                        decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                                colors: [
+                                                  (index % 2 == 0)
+                                                      ? Colors.white
+                                                      : Colors
+                                                      .grey.shade300,
+                                                  (index % 2 == 0)
+                                                      ? Colors.white
+                                                      : Colors
+                                                      .grey.shade300,
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment
+                                                    .bottomRight),
+                                            borderRadius:
+                                            BorderRadius.circular(
+                                                5.0),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                offset: Offset(0, 4),
+                                                color: Colors.teal,
+                                                blurRadius: 10,
+                                              )
+                                            ])),
+                                    Container(
+                                        decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                                colors: [
+                                                  (index % 2 == 0)
+                                                      ? Colors.white
+                                                      : Colors
+                                                      .grey.shade300,
+                                                  (index % 2 == 0)
+                                                      ? Colors.white
+                                                      : Colors
+                                                      .grey.shade300,
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment
+                                                    .bottomRight),
+                                            borderRadius:
+                                            BorderRadius.circular(
+                                                5.0),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                offset: Offset(0, 4),
+                                                color: Colors.teal,
+                                                blurRadius: 10,
+                                              )
+                                            ])),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          top: 19, left: 35),
+                                      child: Text(
+                                        l_List_Elements[index]
+                                            .Pr_VoucherNo,
+                                        style: GoogleFonts.ubuntu(
+                                            textStyle: TextStyle(
+                                                fontSize: 32,
+                                                color: Colors.black,
+                                                fontWeight:
+                                                FontWeight.w600,
+                                                letterSpacing: .5)),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          top: 25, left: 330),
+                                      child: Text(
+                                        G_DateTimeFormat.format(
+                                            l_List_Elements[index]
+                                                .Pr_VDate),
+                                        style: GoogleFonts.ubuntu(
+                                            textStyle: TextStyle(
+                                                fontSize: 22,
+                                                color: Colors.black,
+                                                fontWeight:
+                                                FontWeight.w600,
+                                                letterSpacing: .5)),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          top: 66, left: 35),
+                                      child: Text(
+                                        'Cheque No',
+                                        style: GoogleFonts.ubuntu(
+                                            textStyle: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.black,
+                                                //fontWeight: FontWeight.w600,
+                                                letterSpacing: .5)),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          top: 90, left: 35),
+                                      child: Text(
+                                        l_List_Elements[index]
+                                            .Pr_ChequeNo,
+                                        style: GoogleFonts.ubuntu(
+                                            textStyle: TextStyle(
+                                                fontSize: 19,
+                                                color: Colors
+                                                    .lightBlueAccent,
+                                                fontWeight:
+                                                FontWeight.w600,
+                                                letterSpacing: .5)),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          top: 66, left: 163),
+                                      child: Text(
+                                        'Cheque Status',
+                                        style: GoogleFonts.ubuntu(
+                                            textStyle: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.black,
+                                                //fontWeight: FontWeight.w600,
+                                                letterSpacing: .5)),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          top: 90, left: 168),
+                                      child: Text(
+                                        l_List_Elements[index]
+                                            .Pr_ChequeStatus,
+                                        style: GoogleFonts.ubuntu(
+                                            textStyle: TextStyle(
+                                                fontSize: 19,
+                                                color: Colors.indigoAccent
+                                                    .shade200,
+                                                fontWeight:
+                                                FontWeight.w600,
+                                                letterSpacing: .5)),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          top: 66, left: 326),
+                                      child: Text(
+                                        'Amount',
+                                        style: GoogleFonts.ubuntu(
+                                            textStyle: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.black,
+                                                //fontWeight: FontWeight.w600,
+                                                letterSpacing: .5)),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          top: 90, left: 329),
+                                      child: Text(
+                                        G_currencyFormat.format(
+                                            l_List_Elements[index]
+                                                .Pr_Amount),
+                                        style: GoogleFonts.ubuntu(
+                                            textStyle: TextStyle(
+                                                fontSize: 19,
+                                                color: Colors
+                                                    .greenAccent.shade400,
+                                                fontWeight:
+                                                FontWeight.w600,
+                                                letterSpacing: .5)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                )),
+          ],
+        ),
+    ),);
   }
+
+//============================DART=================================
 
   FncstartupSettings() {
     //Labels
@@ -414,6 +594,10 @@ class _vi_PendingChequesState extends State<vi_PendingCheques> {
     lblCompanyName.TxtText = "Details";
     lblCompanyName.TxtFontSize = 21;
     lblCompanyName.color = Colors.black87;
+
+    lblAppBar.TxtText = "Pending Cheques";
+    lblAppBar.TxtFontSize = 24;
+    lblAppBar.color = Colors.black87;
   }
 
   FncReport() async {
@@ -425,11 +609,59 @@ class _vi_PendingChequesState extends State<vi_PendingCheques> {
     if (l_result == null) {
       Get.snackbar("Alert", "Invalid Login Information");
     } else {
+
+
+
       Uint8List decoded = base64.decode(l_result);
+
+
       cmGlobalVariables.Pb_Report = decoded;
+
+
       print(cmGlobalVariables.Pb_Report);
     }
   }
+
+
+
+  void FncfilterSearchResults(String UserInput) {
+    List<ModI_PendingCheques> dummySearchList = <ModI_PendingCheques>[];
+    dummySearchList.addAll(l_ListPendingSO);
+    List<ModI_PendingCheques> l_SearchedListItems = [];
+
+    List<ModI_PendingCheques> l_dummyListData = <ModI_PendingCheques>[];
+    if (UserInput.isNotEmpty) {
+      UserInput.split(' ').forEach((s) {
+        l_SearchedListItems.addAll(l_ListPendingSO.where((l_listelement) =>
+            l_listelement.Pr_VoucherNo.toString().toLowerCase().contains(s)));
+        l_SearchedListItems.addAll(l_ListPendingSO.where((l_listelement) =>
+            l_listelement.Pr_VoucherNo.toString().toUpperCase().contains(s)));
+        l_SearchedListItems.addAll(l_ListPendingSO.where((l_listelement) =>
+            l_listelement.Pr_ChequeNo.toString().contains(s)));
+        l_SearchedListItems.addAll(l_ListPendingSO.where(
+            (l_listelement) => l_listelement.Pr_Amount.toString().contains(s)));
+        l_SearchedListItems.addAll(l_ListPendingSO.where((l_listelement) =>
+            l_listelement.Pr_ChequeStatus.toString()
+                .toLowerCase()
+                .contains(s)));
+        l_SearchedListItems.addAll(l_ListPendingSO.where((l_listelement) =>
+            l_listelement.Pr_ChequeStatus.toString()
+                .toUpperCase()
+                .contains(s)));
+
+        l_dummyListData = l_SearchedListItems.toSet().toList();
+      });
+
+      setState(() {
+        l_List_Elements.clear();
+        l_List_Elements.addAll(l_dummyListData);
+      });
+      return;
+    } else {
+      setState(() {
+        l_List_Elements.clear();
+        l_List_Elements.addAll(l_ListPendingSO);
+      });
+    }
+  }
 }
-
-

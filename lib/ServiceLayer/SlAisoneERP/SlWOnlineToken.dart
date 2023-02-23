@@ -12,8 +12,6 @@ class SlCompanyURLs {
         'pr_Password': pass,
         'pr_CompanyDID': uuid
       };
-
-      //Uri.https('www.aisonesystems.com', '/apiUser/ApiCompanyURLs/Post');
       String l_jsonString = json.encode((body));
       List<int> l_UtfContent = utf8.encode(l_jsonString);
 

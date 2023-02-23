@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.aisoneaccess">
+
+
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
    <application
+        android:requestLegacyExternalStorage="true"
         android:label="AisoneAccess"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
@@ -20,6 +27,10 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <meta-data
+                android:name="com.google.firebase.messaging.default_notification_channel_id"
+                android:value="pushnotificationapp"/>
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -30,7 +41,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>
+
 
 </manifest>

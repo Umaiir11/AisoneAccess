@@ -1,4 +1,4 @@
-#Wed Nov 09 17:05:40 PKT 2022
-base.0=E\:\\aisoneaccess\\build\\app\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
-renamed.0=classes.dex
+#Wed Feb 01 14:06:45 PKT 2023
+base.0=E\:\\a\\aisoneaccess\\build\\app\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
 path.0=classes.dex
+renamed.0=classes.dex

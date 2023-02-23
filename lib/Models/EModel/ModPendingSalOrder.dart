@@ -1,6 +1,6 @@
 import 'dart:core';
 import 'package:flutter/material.dart';
-class ModI_PendingSaleOrder
+class   ModI_PendingSaleOrder
 {
   String Pr_PKGUID = "" ;
   int Pr_VNO = 0 ;
@@ -8,7 +8,6 @@ class ModI_PendingSaleOrder
   DateTime Pr_VDate = DateTime.parse("2022-08-13T13:49:44");
   String Pr_AccountDID = "" ;
   String Pr_AccountID = "" ;
-  String Pr_CityID = "" ;
   String Pr_CustomerRefNo = "" ;
   String Pr_RefNo = "" ;
   String Pr_Remarks = "" ;
@@ -25,3 +24,5 @@ class ModI_PendingSaleOrder
 
 
 }
+
+

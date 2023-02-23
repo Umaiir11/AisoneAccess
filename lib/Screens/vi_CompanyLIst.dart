@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:marquee/marquee.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../ClassModules/cmGlobalVariables.dart';
 import '../Models/EModel/ModBranchSetting.dart';
@@ -58,142 +58,197 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints){
 
-      bottomNavigationBar:
-      SizedBox(
-        height: 23,
-        child: BottomAppBar(elevation: 4.0,
-            color: Colors.black,
-            child: Marquee(fadingEdgeEndFraction: .2,
-              text: 'Powered by - aisonesystems.com',
-              style: TextStyle( fontSize:18,color: Colors.white),
-              scrollAxis: Axis.horizontal, //scroll direction
-              crossAxisAlignment: CrossAxisAlignment.start,
-              blankSpace: 20.0,
-              velocity: 50.0, //speed
-              //pauseAfterRound: Duration(seconds: 5),
-              startPadding: 10.0,
-              accelerationDuration: Duration(seconds: 5),
-              accelerationCurve: Curves.linear,
-              decelerationDuration: Duration(milliseconds: 1000),
-              decelerationCurve: Curves.easeOut,
-            )
+        double height = constraints.maxHeight;
+        double width = constraints.maxWidth;
 
-        ),
-      ),
+        return Scaffold(
+          bottomNavigationBar: SizedBox(
+            height: 33,
+            child:BottomAppBar(
+                elevation: 10.0,
+                color: Colors.cyan.shade200,
+                child: ResponsiveWrapper(
+                  maxWidth: 1200,
+                  minWidth: 480,
+                  defaultScale: true,
+                  breakpoints: const [
+                    ResponsiveBreakpoint.resize(480, name: MOBILE),
+                    ResponsiveBreakpoint.autoScale(800, name: TABLET),
+                    ResponsiveBreakpoint.resize(1000, name: DESKTOP),
+                    ResponsiveBreakpoint.autoScale(2460, name: '4K'),
+                  ],
+                  child: Stack(
+                    children: [
 
-      body: Container(
-          height: double.infinity,
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFFFFFFF),
-                Color(0xFFD1FFFF),
-                Color(0xFF88ECF8),
-                Color(0xFF65DCDC),
-              ],
-              stops: [0.0, 0.5, 0.7, 0.9],
+
+
+                      Container(height :100,),
+                      Container(
+                        margin: EdgeInsets.only(top: 7.5, left: 84),
+                        child: InkWell(
+                          onTap: () => launchUrl(Uri.parse('https://www.aisonesystems.com/')),
+                          child: Text(
+                            'Powered by - aisonesystems.com',style:
+
+                          GoogleFonts.ubuntu(
+                              textStyle: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                  letterSpacing: .5)),
+                          ),
+                        ),
+                      ),
+
+
+
+                      Container(
+                        margin: EdgeInsets.only(top: 0, left: 385),
+
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.phone_forwarded_outlined, size: 25,color: Colors.indigoAccent,
+                          ),
+                          onPressed: () async {
+                            Uri phoneno = Uri.parse('tel:+923214457734');
+                            if (await launchUrl(phoneno)) {
+                              //dialer opened
+                            }else{
+                              //dailer is not opened
+                            }
+                          },
+                        ),
+                      ),
+
+                      Container(
+                        margin: EdgeInsets.only(top: 0, left: 22),
+
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.whatsapp_outlined, size: 25,color: Colors.green,
+                          ),
+                          onPressed: () async {
+
+                            var whatsapp = "+923214457734";
+                            Uri whatsappopen = Uri.parse("whatsapp://send?phone=$whatsapp");
+                            if (await launchUrl(whatsappopen)) {
+                              //dialer opened
+                            }else{
+                              //dailer is not opened
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+
+
             ),
           ),
-          child: SingleChildScrollView(
-            child: ResponsiveWrapper(
-              maxWidth: 1200,
-              minWidth: 480,
-              defaultScale: true,
-              breakpoints: const [
-                ResponsiveBreakpoint.resize(480, name: MOBILE),
-                ResponsiveBreakpoint.autoScale(800, name: TABLET),
-                ResponsiveBreakpoint.resize(1000, name: DESKTOP),
-                ResponsiveBreakpoint.autoScale(2460, name: '4K'),
-              ],
-              child: Stack(
-                children: <Widget>[
-                  Container(
-                    height: 500,
+
+          body: Container(
+            height: height,
+            width: width,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFFFFFFF),
+                  Color(0xFFD1FFFF),
+                  Color(0xFF88ECF8),
+                  Color(0xFF65DCDC),
+                ],
+                stops: [0.0, 0.5, 0.7, 0.9],
+              ),
+            ),
+            child: Stack(
+              children: <Widget>[
+                Container(
+                  height: height*500,
+                ),
+
+                Container(
+                  margin: EdgeInsets.only(top: height*0.070, left: width*0.2),
+                  child: Shimmer.fromColors(
+                      baseColor: Colors.black38,
+                      highlightColor: Colors.cyanAccent,
+                      child: lblCompanyList),
+                ),
+                //Cards and Decorated Containers
+
+                AnimatedContainer(duration: Duration(milliseconds: 370),
+                  margin: EdgeInsets.only(top: height*0.170, left:width*0.0400),
+                  width: isFolded ? 56 :320 ,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    color: Colors.lightBlueAccent.shade100,
+
                   ),
+                  child:  Row(children: [
 
-                  Container(
-                    margin: EdgeInsets.only(top: 80, left: 127),
-                    child: Shimmer.fromColors(
-                        baseColor: Colors.black38,
-                        highlightColor: Colors.cyanAccent,
-                        child: lblCompanyList),
-                  ),
-                  //Cards and Decorated Containers
-
-                  AnimatedContainer(duration: Duration(milliseconds: 370),
-                    margin: EdgeInsets.only(top: 140, left:27),
-                    width: isFolded ? 56 :320 ,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(32),
-                      color: Colors.lightBlueAccent.shade100,
-
-                    ),
-                    child:  Row(children: [
-                      
-                      Expanded(child: Container(
+                    Expanded(child: Container(
                         padding: EdgeInsets.only(left: 16),
                         child:  ! isFolded ? TextField(
                           controller: _textController,
                           onChanged: FncfilterSearchResults,
                           decoration: InputDecoration(
-                          hintText: "Search",
-                          hintStyle: TextStyle(color:Colors.black),
-                          border: InputBorder.none,
+                            hintText: "Search",
+                            hintStyle: TextStyle(color:Colors.black),
+                            border: InputBorder.none,
 
 
-                        ),)
+                          ),)
                             :null
 
-                      )
-                      ),
-                      AnimatedContainer(duration: Duration(milliseconds: 370),
+                    )
+                    ),
+                    AnimatedContainer(duration: Duration(milliseconds: 370),
 
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: InkWell(
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: InkWell(
                             borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(isFolded? 32:0),
+                              topLeft: Radius.circular(isFolded? 32:0),
                               topRight: Radius.circular(32),
                               bottomLeft:Radius.circular(isFolded? 32:0),
-                             bottomRight: Radius.circular(32),
+                              bottomRight: Radius.circular(32),
 
 
                             ),
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Icon(size: 20, isFolded? Icons.search : Icons.close,
-                              color: Colors.black87,
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Icon(size: 20, isFolded? Icons.search : Icons.close,
+                                color: Colors.black87,
 
+                              ),
                             ),
-                          ),
 
                             onTap:(){
-                            setState(() {
-                              isFolded =! isFolded;
-                            });
+                              setState(() {
+                                isFolded =! isFolded;
+                              });
                             }
-                      ),
                         ),
+                      ),
 
 
 
-                      )
+                    )
 
-                    ],),
-                  ),
+                  ],),
+                ),
 
 
-                  Container(
+                Container(
                     margin: EdgeInsets.only(top: 180, left: 0),
                     child:  ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
+                      // shrinkWrap: true,
+                      // physics: const NeverScrollableScrollPhysics(),
                       itemCount: items.length,
                       itemBuilder: ((context, index) {
                         return Column(
@@ -209,11 +264,11 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
                                           "Company URl", cmGlobalVariables.Pb_ERPApiUrl!);
 
                                     }
-                                      else{
+                                    else{
 
                                       Get.to(() => vi_Drawer());
 
-                                                  }
+                                    }
 
                                 }
 
@@ -224,7 +279,7 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
 
                               child: SizedBox(
                                 width: 440,
-                                height: 185,
+                                height: 175,
                                 child: Card(
                                   elevation: 5.0,
                                   shape: RoundedRectangleBorder(
@@ -244,7 +299,7 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
                                     child: Stack(
                                       children: [
                                         Container(
-                                          height:200,
+                                            height:200,
                                             decoration: BoxDecoration(
                                                 gradient: LinearGradient(
                                                     colors: [
@@ -271,32 +326,7 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
                                                   )
                                                 ])),
 
-                                        Container(
-                                            decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                    colors: [
-                                                      (index % 2 == 0)
-                                                          ? Colors.lightBlueAccent
-                                                          .shade100
-                                                          : Colors
-                                                          .lightBlue.shade100,
-                                                      (index % 2 == 0)
-                                                          ? Colors.lightBlueAccent
-                                                          .shade100
-                                                          : Colors
-                                                          .lightBlue.shade100,
-                                                    ],
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight),
-                                                borderRadius:
-                                                BorderRadius.circular(5.0),
-                                                boxShadow: const [
-                                                  BoxShadow(
-                                                    offset: Offset(0, 4),
-                                                    color: Colors.teal,
-                                                    blurRadius: 10,
-                                                  )
-                                                ])),
+
                                         Container(
                                           margin:
                                           EdgeInsets.only(top: 26, left: 35),
@@ -413,10 +443,15 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
                       }),
                     )),
 
-                ],
-              ),
+              ],
             ),
-          )),
+          ),
+
+        );
+
+
+      },
+
     );
   }
 
@@ -433,7 +468,7 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
     lblCompanyName.color = Colors.black87;
   }
 
-  Future<bool> Fnc_OnlineToken() async {
+  Future<bool>  Fnc_OnlineToken() async {
     String email = l_ListCompanyList[selectedIndeX].Pr_EmailId;
     String uuid = l_ListCompanyList[selectedIndeX].Pr_CompanyDid;
     String Pass = Get.find(tag: "Pass");
@@ -453,7 +488,11 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
 
   Future<bool> Fnc_OnlineAssignedBranches() async {
 
-
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Center(child: CircularProgressIndicator());
+        });
     //Assigned Branches Api Call
     l_listAssignedBranches = await SlEAssignedBranches().Fnc_AssignedBranches();
     {
@@ -463,17 +502,16 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
         return false;
       }
       count = l_listAssignedBranches!.length;
-      print(cmGlobalVariables.PbDefaultBranch);
 
 
       RxList<ModAssignedBranches>? Rx_AssignedBranches =
           <ModAssignedBranches>[].obs;
       Rx_AssignedBranches.addAll(l_listAssignedBranches!);
 
-      print(Rx_AssignedBranches);
       Get.put(Rx_AssignedBranches, tag: "Rx_AssignedBranches");
     }
 
+      Navigator.of(context).pop();
     return true;
   }
 

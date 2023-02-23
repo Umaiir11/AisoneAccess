@@ -46,12 +46,11 @@ class SlwUserLogin {
 
   //Method return list type
   List<ModUserProfile> Fnc_JsonToListOfModel(List<dynamic> l_JsonList) {
-    //Declare Local Variable For list Of Model and instance
 
     List<ModUserProfile> l_ListModUserProfile =
         new List<ModUserProfile>.empty(growable: true);
 
-    //Start Irritation From Json String
+
 
     for (dynamic l_JsonObject in l_JsonList) {
       ModUserProfile l_ModUserProfile = new ModUserProfile();
