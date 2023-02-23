@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -127,7 +128,8 @@ class _vi_CompanyLIstState extends State<vi_CompanyLIst> {
 
                         child: IconButton(
                           icon: Icon(
-                            Icons.whatsapp_outlined, size: 25,color: Colors.green,
+                            MdiIcons.whatsapp,
+                            size: 25,color: Colors.green,
                           ),
                           onPressed: () async {
 

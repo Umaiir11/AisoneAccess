@@ -130,7 +130,8 @@ class _vi_DrawerState extends State<vi_Drawer> {
                     margin: EdgeInsets.only(top: 0, left: 22),
                     child: IconButton(
                       icon: Icon(
-                        Icons.whatsapp_outlined,
+                        MdiIcons.whatsapp,
+
                         size: 25,
                         color: Colors.green,
                       ),

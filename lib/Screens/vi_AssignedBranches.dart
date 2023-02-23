@@ -102,7 +102,8 @@ class _vi_AssignedBranchesState extends State<vi_AssignedBranches> {
 
                     child: IconButton(
                       icon: Icon(
-                        Icons.whatsapp_outlined, size: 25,color: Colors.green,
+                        MdiIcons.whatsapp,
+                        size: 25,color: Colors.green,
                       ),
                       onPressed: () async {
 

@@ -3,6 +3,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
@@ -148,7 +149,8 @@ class _ControllState extends State<Controll> {
                     margin: EdgeInsets.only(top: 0, left: 22),
                     child: IconButton(
                       icon: Icon(
-                        Icons.whatsapp_outlined,
+                        MdiIcons.whatsapp,
+
                         size: 25,
                         color: Colors.green,
                       ),
